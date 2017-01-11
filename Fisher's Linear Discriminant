@@ -1,0 +1,13 @@
+Wine <- read.csv('wine.data')
+View(Wine)
+pairs(~ Wine[,2]+Wine[,3]+Wine[,4]+Wine[,5], data = Wine)
+Wine.lda <- lda(X1 ~ .,data = Wine)
+Wine.lda
+# group means gives the info of 13 dimensional vector of tht class(in this case)
+# proportion of trace gives the info about how much % does LD1 and LD2 saperate the groups. you can see LD1 seperates the group very well.
+Wine.lda.values <- predict(Wine.lda)
+ldahist(data = Wine.lda.values$x[,1],g=Wine[,1])
+ldahist(data = Wine.lda.values$x[,2],g=Wine[,1])
+
+plot(Wine.lda.values$x[,1],Wine.lda.values$x[,2])
+text(Wine.lda.values$x[,1],Wine.lda.values$x[,2],Wine[,1],cex = .7,pos = 4,col = "red")
