@@ -1,0 +1,183 @@
+/* SAS Project 1 */
+
+options validvarname=v7;
+
+/* To input the XLS files */
+
+proc import out=project.finalproject datafile="/home/akilesh70/sasuser.v94/DS540/API_BX.KLT.DINV.CD.WD_DS2_en_excel_v2-2.xls" 
+	dbms=xls replace;
+	sheet="data";
+	getnames=yes;
+run;
+
+proc print data=project.finalproject;
+run;
+
+/* The 3 Country Selected from the World Bank Data */
+
+data project.finalproject;
+	set project.finalproject;
+
+	if country_code in("ECS", "EUU", "USA");
+	
+run;
+
+proc print data=project.finalproject;
+	title " selected country data ";
+run;
+
+/* Transpose of the 3 countries from the world bank data for plotting the graph */
+proc transpose data=project.finalproject 
+				out=project.Themain;						
+run;
+
+proc print data=project.Themain;
+	title " tranpose of 3 country data ";	
+run;
+
+data project.Plot;
+	set project.Themain;
+		year=substr(_name_,2,4)*1;
+		USA=col1;
+		ECS=col2;
+		EUU=col3;		
+	drop _name_ _label_ col1 col2 col3;
+		USA=USA*0.000000001;
+		ECS=ECS*0.000000001;
+		EUU=EUU*0.000000001;		
+run;
+
+Proc print data=project.Plot;
+	Title "Transpose of the 3 countries";
+run;
+
+/* The 2 countries selected from the world bank data for calculating the mean  */
+data project.ECSEUU;
+	set project.finalproject;
+	if country_code in("ECS", "EUU");
+run; 
+
+proc print data=project.ECSEUU;
+	title " selected country ECSEUU data ";
+run;
+
+/* The primary country selected form the world bank data */
+data project.USA;
+	set project.finalproject;
+	if country_code in("USA");
+run; 
+
+proc print data=project.USA;
+	title " selected country USA Data ";
+run;
+
+/* The Mean of the 2 countries  */
+proc means data=project.ECSEUU  maxdec=2;
+  title "Mean of ECS and EUU";
+  var _1970-_2015;
+  output out=project.AvECSEUU
+  Mean= _1970-_2015;
+run;
+
+proc print data=project.avecseuu;
+run;
+
+/* The MIN of the 2 countries  */
+proc means data=project.ECSEUU  maxdec=2;
+  title "MIN of ECS and EUU";
+  var _1970-_2015;
+  output out=project.MNECSEUU min= _1970-_2015;
+run;
+
+proc print data=project.MNECSEUU;
+run;
+
+/* The MAX of the 2 countries  */
+proc means data=project.ECSEUU  maxdec=2;
+  title "MAX of ECS and EUU";
+  var _1970-_2015;
+  output out=project.MXECSEUU max= _1970-_2015;
+run;
+
+proc print data=project.MXECSEUU;
+run;
+
+/* Merging the 2 data i.e primary country and the Mean of the 2 countries */
+Data project.concatenation1;
+	set project.usa project.avecseuu project.MNECSEUU project.MXECSEUU;
+	drop _TYPE_ _FREQ_;
+run;
+proc print data=project.concatenation1;
+	var _1970-_2015 ;
+	title 'combined data set';
+run;
+
+/* Transpose of the merged table */
+proc transpose data=project.concatenation1 
+				out=project.concatenation3;						
+run;
+
+proc print data=project.concatenation3;
+	title " tranpose country data ";	
+run;
+
+/* libname projectQ '/home/akilesh70/sasuser.v94/project'; */
+
+data project.FData;
+	set project.concatenation3;
+		year=substr(_name_,2,4)*1;
+		USA=col1;
+		ECSEUUMEAN=col2;
+		ECSEUUMIN=col3;
+		ECSEUUMAX=col4;
+	drop _name_ _label_ col1 col2 col3 col4;
+		USA=USA*0.000000001;
+		ECSEUUMEAN=ECSEUUMEAN*0.000000001;
+		ECSEUUMIN=ECSEUUMIN*0.000000001;
+		ECSEUUMAX=ECSEUUMAX*0.000000001;		
+run;
+
+Proc contents data=project.fdata;
+
+Proc print data=project.FData;
+	Title "Final Data set USA,European Union & Europe and Central Asia";
+run;
+
+/* To plot the graph of primary country and the other two countries(European Union & Europe & Central Asia ) */
+axis1 order=(1970 to 2015 by 5) offset=(1,1)
+      label=(height=2 angle=0 'Year')
+      major=(height=1)
+      minor=none
+      width=1;
+
+axis2 order=(0 to 1900 by 100) offset=(1,1)
+      label=(height=2 angle=90 'Foreign direct investment, net inflows US$(In Billions)')
+      major=(height=1)
+      minor=none
+      width=1;
+ 
+proc  gplot data=project.plot;
+	plot USA*Year ECS*year EUU*year / overlay HAXIS=axis1 legend VAXIS=axis2;
+	symbol1 i=join v=dot ci=bibg cv=beige; 
+	symbol2 i=join v=diamond ci=aquamarine cv=bib;
+	symbol3 i=join v=circle ci=bigy cv=bio;
+	Title "GPLOT the 3 countries European Union & Europe & Central Asia & USA";
+run;
+
+/* To plot the graph of primary country and the mean of the other two countries(European Union & Europe & Central Asia) */
+proc  gplot data=project.FData;
+	plot USA*Year ECSEUUMEAN*year / overlay HAXIS=axis1 legend VAXIS=axis2;
+	symbol1 i=join v=dot ci=bibg cv=beige; 
+	symbol2 i=join v=diamond ci=aquamarine cv=bib;
+	Title "GPLOT USA & Mean of European Union & Europe & Central Asia";
+run;
+/* To plot the graph of primary country and the MIN & Max of the other two countries(European Union & Europe & Central Asia) */
+
+proc  gplot data=project.FData;
+	plot USA*Year ECSEUUMIN*year ECSEUUMAX*year / overlay HAXIS=axis1 legend VAXIS=axis2;
+	symbol1 i=join v=dot ci=bibg cv=beige; 
+	symbol2 i=join v=diamond ci=aquamarine cv=bib;
+	symbol3 i=join v=circle ci=bigy cv=bio;
+	Title "GPLOT MIN & MAX of European Union & Europe & Central Asia along with USA";
+run;
+quit;
