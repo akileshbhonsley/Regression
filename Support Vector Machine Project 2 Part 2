@@ -1,0 +1,86 @@
+#Importing CSV data set
+heart<-read.csv('Heart.csv', header=TRUE)
+View(heart)
+#omitting incomplete rows in dataset
+heart<-na.omit(heart[,-1])
+summary(heart)
+#Checking levels of categorical variables
+levels(heart$Slope)
+levels(heart$ChestPain)
+levels(heart$Thal)
+#Creating Dummy Variables for Chestpain
+#ChestPain Typical is Control group
+heart$chestpainAsymtomatic<-heart$ChestPain=="asymptomatic"
+heart$chestpainNonanginal<-heart$ChestPain=="nonanginal"
+heart$chestpainNontypical<-heart$ChestPain=="nontypical"
+heart<-heart[,-3]
+#Creating dummy variables for Thal
+#Thal=fixed is control group
+heart$thalNormal<-heart$Thal=="normal"
+heart$thalReversable<-heart$Thal=="reversable"
+heart<-heart[,-12] #removing Thal
+#Creating dummy variables for CA
+#CA=0 is control group
+heart$ca1<-heart$Ca==1
+heart$ca2<-heart$Ca==2
+heart$ca3<-heart$Ca==3
+heart<-heart[,-11]
+#Creating dummy variables for slope
+#Slope=1 is control group
+heart$slope2<-heart$Slope==2
+heart$slope3<-heart$Slope==3
+heart<-heart[,-10]
+View(heart)
+#Checking coorelations
+cor(heart,method="pearson")# line not working on my system due to packages
+cols <- sapply(heart, is.logical)
+heart[,cols] <- lapply(heart[,cols], as.numeric)
+head(heart)
+View(heart)
+#Creating Training and Test data sets.
+train<-heart[1:250,]
+test<-heart[251:nrow(heart),]
+View(train)
+View(test)
+plot(cmdscale(dist(train[,-10])),col=as.integer(train[,5]),pch=c("o","+")[1:250 %in% model$index +1])# line not working on my system due to packages
+#All Variables
+model<-svm(AHD~.,data=train)
+#summary(model)
+x<-subset(train,select=-AHD)
+y<-train$AHD
+pred<-predict(model)
+table(pred,y)
+predTest<-predict(model, subset(test,select=-AHD))
+ytest<-test$AHD
+table(predTest,ytest)
+#Oldpeak+ chestpainAsymtomatic+thalReversable+ca1
+model<-svm(AHD~Oldpeak+chestpainAsymtomatic+thalReversable+ca1,data=train)
+#summary(model)
+x<-subset(train,select=c(Oldpeak,chestpainAsymtomatic,thalReversable,ca1))
+y<-train$AHD
+pred<-predict(model)
+table(pred,y)
+predTest<-predict(model, subset(test,select=-AHD))
+ytest<-test$AHD
+table(predTest,ytest)
+#Age+Sex+RestBP+Chol+Fbs+RestECG+MaxHR+ExAng+Oldpeak+chestpainAsymtomatic+chestpainNonanginal+chestpainNontypical+thalNormal+thalReversable+ca1+ca2+ca3+slope2
+model<-svm(AHD~Age+Sex+RestBP+Chol+Fbs+RestECG+MaxHR+ExAng+Oldpeak+chestpainAsymtomatic+chestpainNonanginal+chestpainNontypical+thalNormal+thalReversable+ca1+ca2+ca3+slope2,data=train)
+#summary(model)
+x<-subset(train,select=c(Age,Sex,RestBP,Chol,Fbs,RestECG,MaxHR,ExAng,Oldpeak,chestpainAsymtomatic,chestpainNonanginal,chestpainNontypical,thalNormal,thalReversable,ca1,ca2,ca3,slope2))
+y<-train$AHD
+pred<-predict(model)
+table(pred,y)
+predTest<-predict(model,
+subset(test,select=c(Age,Sex,RestBP,Chol,Fbs,RestECG,MaxHR,ExAng,Oldpeak,chestpainAsymtomatic,chestpainNonanginal,chestpainNontypical,thalNormal,thalReversable,ca1,ca2,ca3,slope2)))
+ytest<-test$AHD
+table(predTest,ytest)
+#Sex+RestBP+Chol+Fbs+RestECG+MaxHR+ExAng+Oldpeak+chestpainAsymtomatic+chestpainNonanginal+chestpainNontypical+thalNormal+thalReversable+ca1+ca2+ca3+slope2
+model<-svm(AHD~Sex+RestBP+Chol+Fbs+RestECG+MaxHR+ExAng+Oldpeak+chestpainAsymtomatic+chestpainNonanginal+chestpainNontypical+thalNormal+thalReversable+ca1+ca2+ca3+slope2,data=train)
+#summary(model)
+x<-subset(train,select=c(Sex,RestBP,Chol,Fbs,RestECG,MaxHR,ExAng,Oldpeak,chestpainAsymtomatic,chestpainNonanginal,chestpainNontypical,thalNormal,thalReversable,ca1,ca2,ca3,slope2))
+y<-train$AHD
+pred<-predict(model)
+table(pred,y)
+predTest<-predict(model,subset(test,select=c(Sex,RestBP,Chol,Fbs,RestECG,MaxHR,ExAng,Oldpeak,chestpainAsymtomatic,chestpainNonanginal,chestpainNontypical,thalNormal,thalReversable,ca1,ca2,ca3,slope2)))
+ytest<-test$AHD
+table(predTest,ytest)
