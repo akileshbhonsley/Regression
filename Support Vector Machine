@@ -1,0 +1,10 @@
+iris
+model<- svm(Species ~ ., data = iris)
+summary(model)
+plot(cmdscale(dist(iris[,-5])),col=as.integer(iris[,5]),pch=c("o","+")[1:150 %in% model$index+1])
+x<- subset(iris, select = -Species)
+y <- iris$Species
+pred <- predict(model,x)
+table(pred,y)
+
+
