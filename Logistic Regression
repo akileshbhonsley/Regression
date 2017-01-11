@@ -1,0 +1,13 @@
+admit<- read.csv('binary_data.csv')
+View(admit) # view the data u just loaded
+model<- glm(admit~ ., family = binomial, data = admit)
+summary(model) # to look at the values in the model which u just did.
+model<- glm(admit~gpa,family = binomial, data = admit)  # xi is the gpa here.
+summary(model) # in the model if intercept is -ve and slope is + u know that the e^value can be zero so the curve will cross 1/2. and u can breath a lil over it
+# we choose the gpa instead or gre coz when v run the model with all the values v see that we will have to do lot more in moving the gre score than gpa and based on the values u get in the 1st model u can decide which variable is more effect on the model than the other. 
+# also look into the glm function in R
+coef(model) # gives the beta 0 and beta 1 values
+coef(model)[1]
+coef(model)[2]
+fitted_pi <- 1/(1+(exp(-coef(model)[1]-coef(model)[2]*(admit$gpa))))
+plot(admit$gpa,fitted_pi)
